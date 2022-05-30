@@ -1,5 +1,5 @@
 #include<stdio.h>
-#include<termios.h>
+//#include<termios.h>
 #include<unistd.h>
 #include<stdlib.h>
 #include<fcntl.h>
@@ -119,6 +119,7 @@ char geti(){
 }
 
 #else
+#include<termios.h>
 char geti(){
     // setting terminal icanonical mode
     struct termios new, old;
