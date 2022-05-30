@@ -112,7 +112,13 @@ void moving(struct sbody *apple){
     }
 
 }
+#if _WIN32
+char geti(){
+    #include<conio.h>
+    return getch();
+}
 
+#else
 char geti(){
     // setting terminal icanonical mode
     struct termios new, old;
@@ -133,6 +139,8 @@ char geti(){
     tcsetattr(STDERR_FILENO, TCSANOW, &old);
     return i;
 }
+#endif
+
 
 
 
