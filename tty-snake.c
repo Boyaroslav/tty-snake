@@ -4,11 +4,12 @@
 #include<stdlib.h>
 #include<fcntl.h>
 #include<time.h>
+#include<string.h>
 
-
-#define SIZE 20
+#define SIZEBUF 100 // max size of game zone 
 #define TIME 2
 #define CYCLE 2000
+
 
 #define Orange "\033[32m"
 #define Black "\033[39m"
@@ -18,8 +19,11 @@
 
 
 char move = 'r';
+char *block = "█";
 int clockbin = 0;
 int not_in_snake, ins;
+int game = 1;
+int SIZEX = 20, SIZEY = 20; // default size
 
 struct sbody
 {
@@ -28,23 +32,24 @@ struct sbody
     char *d; // how to draw
 };
 
-struct sbody snake[SIZE * SIZE];
+struct sbody snake[SIZEBUF * SIZEBUF];
 int leng = 1;
 
 int draw(struct sbody apple){
     system("clear");
-    if(snake[0].x < 0 || snake[0].x >= SIZE || snake[0].y < 0 || snake[0].y >= SIZE){
+    if(snake[0].x < 0 || snake[0].x >= SIZEX || snake[0].y < 0 || snake[0].y >= SIZEY){
+        game = 1;
         return 1;
     }
     printf("%s", Orange);
-    for(int i = 0;i<SIZE + 2;i++){printf("█");}
+    for(int i = 0;i<SIZEX + 2;i++){printf("%s", block);}
     printf("score - %d\n%s", leng, Black);
     // рисование бортиков
+int game = 1;
 
-
-    for(int i=0; i<SIZE; i++){
-        printf("%s█%s", Orange, Black);
-        for(int j=0;j<SIZE;j++){
+    for(int i=0; i<SIZEY; i++){
+        printf("%s%s%s", Orange, block, Black);
+        for(int j=0;j<SIZEX;j++){
             int in = 0;
             if(j == apple.x && i == apple.y){printf("%s%s", Blue, apple.d);continue;}
             printf(Black);
@@ -53,11 +58,11 @@ int draw(struct sbody apple){
             }
             if(in == 0){printf(Black);putchar(' ');}
         }
-        printf("%s█%s\n", Orange, Black);
+        printf("%s%s%s\n", Orange, block,  Black);
 
     }
     printf("%s", Orange);
-    for(int i = 0;i<SIZE + 2;i++){printf("█");}putchar('\n'); // рисование бортиков
+    for(int i = 0;i<SIZEX + 2;i++){printf("%s", block);}putchar('\n'); // рисование бортиков
     
     return 0;
 }
@@ -65,13 +70,13 @@ int draw(struct sbody apple){
 void moving(struct sbody *apple){
     // checking apple's eating
     if(apple->x == snake[0].x && apple->y == snake[0].y){
-        struct sbody x = {1, -1, "█"};
+        struct sbody x = {1, -1, block};
         snake[leng] = x;
         leng++; 
 	not_in_snake=0;
         while(not_in_snake == 0){
-        	apple->x = rand() % SIZE;
-        	apple->y = rand() % SIZE;
+        	apple->x = rand() % SIZEX;
+        	apple->y = rand() % SIZEY;
 		ins = 0;
 		for(int i = 0;i<leng;i++){
 			if(snake[i].x == apple->x && snake[i].y == apple->y){ins=1;}
@@ -100,19 +105,20 @@ void moving(struct sbody *apple){
     // checking eating by yourself
     for(int i=1;i<leng;i++){
         if(apple->x == snake[i].x && apple->y == snake[i].y){
-            apple->x = rand() % SIZE;
-            apple->y = rand() % SIZE;
+            apple->x = rand() % SIZEX;
+            apple->y = rand() % SIZEY;
         }
 
         if(snake[i].x == snake[0].x && snake[i].y == snake[0].y){
             printf("%s", Black);
-            exit(0);
+            game = 0;
             return;
         }
     }
 
 }
 #if _WIN32
+block = "#"; // на винде дефолтный шрифт не тянет обычный block
 char geti(){
     #include<conio.h>
     return getch();
@@ -142,30 +148,47 @@ char geti(){
 }
 #endif
 
+// I just want to do it by myself
+int toint(char *x){
+    int n=0, j=0;
+    while(x[j] >= '0' && x[j] <= '9'){
+        n = (n * 10) + (x[j] - '0'); j++;
+
+    }
+    return n;
+}
 
 
 
-int main(){
+
+int main(int argc, char **argv){
     // рекомендую немного увеличить ширину сетки символов в терминале, для более красивой картинки. Удачи!
+    
+    for(int i=0; i<argc; i++){
+
+        if(strcmp(argv[i], "-b") == 0){block = argv[i + 1];}
+        if(strcmp(argv[i], "-x") == 0){SIZEX = toint(argv[i + 1]); if(SIZEX > 100){SIZEX = 100;}}
+        if(strcmp(argv[i], "-y") == 0){SIZEY = toint(argv[i + 1]); if(SIZEY > 100){SIZEY = 100;}}
+    }
+
     srand(time(NULL));
-    struct sbody head = {1, 5, "█"};
+    struct sbody head = {1, 5, block};
     snake[0] = head;
     struct sbody apple;
     //apple.x = rand() % SIZE;
     //apple.y = rand() % SIZE;
     not_in_snake=0;
     while(not_in_snake == 0){
-    	apple.x = rand() % SIZE;
-        apple.y = rand() % SIZE;
+    	apple.x = rand() % SIZEX;
+        apple.y = rand() % SIZEY;
         ins = 0;
         for(int i = 0;i<leng;i++){
         	if(snake[i].x == apple.x && snake[i].y == apple.y){ins=1;}
         }
         if(ins == 0){not_in_snake=1;}
     }
-    apple.d = "█";
+    apple.d = block;
 
-    int game = 1;
     int isq = 0; char g; char b;
     while (game == 1){
         
@@ -196,7 +219,7 @@ int main(){
 
     }
     
-
+    printf("your score is - %d\n", leng);
     return 0;
 }
 
